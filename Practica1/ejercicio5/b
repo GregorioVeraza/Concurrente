@@ -1,0 +1,15 @@
+B) Modifique la solución de (a) para el caso en que se deba respetar el orden de llegada.
+
+Siguiente = -1;
+cola queue;
+
+Process Persona[id: 1..N]{
+	<Agregar(queue)>
+	<await (Siguiente == id);>
+	Imprimir(documento);
+	<if (Empty(queue))
+		Siguiente = -1;
+	else
+		Siguiente = Sacar(queue)>
+	
+}

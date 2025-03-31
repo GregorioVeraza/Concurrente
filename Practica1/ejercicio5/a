@@ -1,0 +1,13 @@
+Existen N personas que deben imprimir un trabajo cada una.
+Implemente una solución suponiendo que existe una única impresora compartida por
+todas las personas, y las mismas la deben usar de a una persona a la vez, sin importar el
+orden. Existe una función Imprimir(documento) llamada por la persona que simula el uso
+de la impresora. Sólo se deben usar los procesos que representan a las Personas
+
+libre = 1;
+
+Process Persona{
+	<await (libre > 0); libre = libre - 1;>;
+	Imprimir(documento);
+	<libre = libre + 1;>;
+}

@@ -1,0 +1,17 @@
+C) Modifique la solución de (a) para el caso en que se deba respetar el orden dado por el
+identificador del proceso (cuando está libre la impresora, de los procesos que han
+solicitado su uso la debe usar el que tenga menor identificador)
+
+Siguiente = -1;
+colaEspecial queue;
+
+Process Persona[id: 1..N]{
+	<InsertarOrdenado(queue, id)>
+	<await (Siguiente == id);>
+	Imprimir(documento);
+	<if (Empty(queue))
+		Siguiente = -1;
+	else
+		Siguiente = Sacar(queue)>
+	
+}

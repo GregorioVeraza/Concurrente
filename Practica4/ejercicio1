@@ -1,0 +1,92 @@
+Suponga que N clientes llegan a la cola de un banco y que serán atendidos por sus
+empleados. Analice el problema y defina qué procesos, recursos y comunicaciones serán
+necesarios/convenientes para resolver el problema. Luego, resuelva considerando las
+siguientes situaciones:
+//a. Existe un único empleado, el cual atiende por orden de llegada.
+
+chan llegue(int);
+chan termine[N](boolean);
+Process Cliente[id: 0..N-1]{
+    boolean problema;
+    send llegue(id);
+    receive termine(problema);
+}
+
+Process Empleado{
+    boolean problema;
+    int id;
+    while(true){
+        receive llegue(id);
+        problema = ResolverProblema();
+        send termine[id](problema);
+    }
+}
+
+/*b. Ídem a) pero considerando que hay 2 empleados para atender, ¿qué debe
+modificarse en la solución anterior?*/
+
+chan llegue(int);
+chan termine[N](boolean);
+Process Cliente[id: 0..N-1]{
+    boolean problema;
+    send llegue(id);
+    receive termine[id](problema);
+}
+
+Process Empleado[idP: 0..1]{
+    boolean problema;
+    int id;
+    while(true){
+        receive llegue(id);
+        problema = ResolverProblema();
+        send termine[id](problema);
+    }
+}
+
+/*c. Ídem b) pero considerando que, si no hay clientes para atender, los empleados
+realizan tareas administrativas durante 15 minutos. ¿Se puede resolver sin usar
+procesos adicionales? ¿Qué consecuencias implicaría?
+*/
+/*
+    Se puede resolver sin procesos adicionales, pero puede llegar a generar demoras innecesarias.
+    Esto debido a que si dos procesos detectam al mismo tiempo que el canal esta vacion, entonces
+    uno va a acceder al dato del canal, mientras que el otro va a estar demorado cuando podria estar haciendo
+    tareas administrativas
+*/
+
+chan llegue(int);
+chan termine[N](boolean);
+chan siguientes[2];
+chan Pedido(int);
+Process Cliente[id: 0..N-1]{
+    boolean problema;
+    send llegue(id);
+    receive termine[id](problema);
+}
+
+Process Coordinador{
+    int idEmpleado;
+    int idCliente;
+
+    while (true) {
+        receive Pedido(idEmpleado);
+        if (empty(llegue)) idCliente = -1
+        else receive llegue(idCliente);
+
+        send siguientes[idEmpleado](idCliente);
+    }
+}
+
+Process Empleado[id: 0..1]{
+    int responder;
+    while(true){
+        send Pedido(id);
+        receive siguientes[id](responder);
+        if (responder <> -1) {
+            --atenderPersona
+            send termine[responder](true);
+        } else {
+            delay(900);
+        }
+    }
+}

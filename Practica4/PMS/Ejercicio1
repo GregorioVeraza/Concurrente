@@ -1,0 +1,36 @@
+1. Suponga que existe un antivirus distribuido que se compone de R procesos robots
+Examinadores y 1 proceso Analizador. Los procesos Examinadores están buscando
+continuamente posibles sitios web infectados; cada vez que encuentran uno avisan la
+dirección y luego continúan buscando. El proceso Analizador se encarga de hacer todas las
+pruebas necesarias con cada uno de los sitios encontrados por los robots para determinar si
+están o no infectados.
+
+Implemente una solución con PMS sin tener en cuenta el orden de los pedidos.
+
+
+Process Examinadores[id: 0..R-1]{
+    texto web;
+    while (true){
+        web = generarSitioWebInfectado();
+        Administrador!enviar(web);
+    }
+}
+
+Process Administrador{
+    cola Buffer;
+    texto web;
+    while (true){
+        do Examinadores[*]?enviar(web); -> push(Buffer, web)
+        [] not empty(Buffer); Analizador?pedido() -> Analizador!recibir(pop(Buffer));
+        od;
+    }
+}
+
+Process Analizador{
+    texto web;
+    while (true){
+        Administrador!pedido();
+        Administrador?recibir(web);
+        examinarWeb(web);
+    }
+}

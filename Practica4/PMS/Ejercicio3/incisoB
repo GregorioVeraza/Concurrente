@@ -1,0 +1,42 @@
+En un examen final hay N alumnos y P profesores. Cada alumno resuelve su examen, lo
+entrega y espera a que alguno de los profesores lo corrija y le indique la nota. Los
+profesores corrigen los exámenes respetando el orden en que los alumnos van entregando.
+a. Implemente una solución con PMS considerando que P=1.
+b. Implemente una solución con PMS considerando que P>1.
+c. Modifique (b) considerando que los alumnos no comienzan a realizar su examen hasta
+que todos hayan llegado al aula.
+Nota: maximizar la concurrencia y no generar demora innecesaria
+
+Process Alumno[id: 0..N-1]{
+    --reslover examen
+    --entregar
+    -- esperar nota
+    texto examen;
+    real nota;
+    examen = realizarExamen();
+    Admin!entregarExamen(examen, id);
+    Profesor[*]?obtenerResultado(nota);
+}
+
+Process Admin{
+    Cola c;
+    texto examen;
+    int id, idProfe;
+    do  Alumno[*]?entregarExamen(examen, id) -> push(c, (examen, id));
+    []  (not empty(c)); Profesor[*]?recibirExamen(idProfe) -> Profesor[idProfe]!enviarExamen(pop(c));
+    od;
+}
+
+Process Profesor[id: 0..P-1]{
+    --recibir mensaje
+    --dar resultados
+    int idAlumno;
+    texto examen;
+    real nota;
+    while (true){
+        Admin!recibirExamen(id);
+        Admin?enviarExamen(examen, idAlumno);
+        nota = corregirExamen(examen);
+        Alumno[idAlumno]!obtenerResultado(nota);
+    }
+}

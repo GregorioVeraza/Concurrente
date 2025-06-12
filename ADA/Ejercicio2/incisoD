@@ -25,15 +25,18 @@ Procedure Banco is
     Task Body Cliente is
         comprobante: texto;
         pago: int;
+        noHay: boolean;
     Begin
         pago = realizarPago()
+        noHay = false;
         SELECT
             Empleado.clientes(pago, comprobante);
         OR DELAY 600.0 
-            Empleado.clientes(pago, comprobante);
-        ELSE
-            NULL;
+            noHay = true
         END SELECT;
+        if (noHay) is
+            hacerAlgo
+        END if;
     End Cliente;
 
     Task Body Empleado is

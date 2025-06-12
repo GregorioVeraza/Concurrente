@@ -3,6 +3,7 @@ E Espectadores de acuerdo al orden de llegada. Cuando el espectador accede a la 
 en su turno usa la máquina y luego se retira para dejar al siguiente. Nota: cada Espectador
 una sólo una vez la máquina
 
+probar con tres variables en administrador 
 Process Espectador [id: 0..E-1]{
     Admin!fila();
     Maquina?usar();

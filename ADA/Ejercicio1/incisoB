@@ -1,0 +1,59 @@
+Se requiere modelar un puente de un único sentido que soporta hasta 5 unidades de peso.
+El peso de los vehículos depende del tipo: cada auto pesa 1 unidad, cada camioneta pesa 2
+unidades y cada camión 3 unidades. Suponga que hay una cantidad innumerable de
+vehículos (A autos, B camionetas y C camiones). Analice el problema y defina qué tareas,
+recursos y sincronizaciones serán necesarios/convenientes para resolver el problema.
+a. Realice la solución suponiendo que no se tiene ningún orden ni prioridad entre los
+diferentes tipos de vehículos.
+b. Modifique la solución de (a) para que tengan mayor prioridad los camiones que el resto
+de los vehículos.
+
+Procedure Puente is
+    Task Puente is
+        Entry Auto();
+        Entry Camion();
+        Entry Camioneta();
+    End Puente;
+
+    Task Type vehiculo;
+
+    arrVehiculo(1..V) of vehiculo;
+
+    Task Body vehiculo is
+    Begin
+        if ("es Auto") then
+            Puente.Auto();
+        else if ("es Camioneta") then
+            Puente.Camioneta();
+        else if ("es Camion") then
+            Puente.Camion();
+        end if;
+    End vehiculo;
+
+    Task Body Puente is
+        contador: int;
+    Begin
+        contador = 0;
+        loop
+            select
+                when (contador < 4 and Camion’count = 0) => 
+                    accept Auto() do
+                        contador = contador + 1;
+                    end Auto;
+            OR
+                when (contador < 3 and Camion’count = 0) => 
+                    accept Camioneta() do
+                        contador = contador + 1;
+                    end Auto;
+            OR
+                when (contador < 2) => 
+                    accept Camion() do
+                        contador = contador + 1;
+                    end Auto;
+            end select;
+        end loop;
+    End Puente;
+
+Begin
+    null
+End Puente;

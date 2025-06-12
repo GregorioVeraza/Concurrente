@@ -1,0 +1,48 @@
+Se quiere modelar el funcionamiento de un banco, al cual llegan clientes que deben realizar
+un pago y retirar un comprobante. Existe un único empleado en el banco, el cual atiende de
+acuerdo con el orden de llegada.
+a. Implemente una solución donde los clientes llegan y se retiran sólo después de haber
+sido atendidos.
+b. Implemente una solución donde los clientes se retiran si esperan más de 10 minutos
+para realizar el pago.
+c. Implemente una solución donde los clientes se retiran si no son atendidos
+inmediatamente.
+d. Implemente una solución donde los clientes esperan a lo sumo 10 minutos para ser
+atendidos. Si pasado ese lapso no fueron atendidos, entonces solicitan atención una vez
+más y se retiran si no son atendidos inmediatamente.
+
+
+cliente
+
+Procedure Banco is
+    Task Type Cliente;
+    Task Empleado is
+        Entry clientes(pago: IN int; comprobante :OUT texto);
+    End Empleado;
+
+    arrClientes(1..P) of Cliente;
+
+    Task Body Cliente is
+        comprobante: texto;
+        pago: int;
+    Begin
+        pago = realizarPago()
+        SELECT
+            Empleado.clientes(pago, comprobante);
+        ELSE 
+            NULL;
+        END SELECT;
+    End Cliente;
+
+    Task Body Empleado is
+        comprobante: texto;
+    Begin
+        loop
+            accept clientes(pago: IN int; comprobante: OUT texto) do
+                comprobante = hacerComprobante(pago);
+            End clientes;
+        End loop;
+    End Empleado;
+Begin
+    null
+End Banco;

@@ -1,0 +1,52 @@
+Se debe calcular el valor promedio de un vector de 1 millón de números enteros que se
+encuentra distribuido entre 10 procesos Worker (es decir, cada Worker tiene un vector de
+100 mil números). Para ello, existe un Coordinador que determina el momento en que se
+debe realizar el cálculo de este promedio y que, además, se queda con el resultado. Nota:
+maximizar la concurrencia; este cálculo se hace una sola vez.
+
+Procedure CalcularVector is
+
+    Task Coordinador is
+        Entry valores(inferior, ultimo: OUT int);
+        Entry calcular(inferior, ultimo: IN int);
+    END Coordinador;
+
+    Task Type Worker;
+
+    arrWorker(1..10) of Worker;
+
+    vector(1..1000000) of integer;
+
+    Task Body Coordinador is
+        inferior, ultimo, i: int;
+    Begin
+        inferior = 0;
+        ultimo = 100000;
+        for (i=1; i<=20; i++) is
+            SELECT
+                accept valores(inf, ult: OUT integer) is
+                    inf = inferior;
+                    ult = ultimo;
+                    inferior = inferior + 100000;
+                    ultimo = ultimo + 100000;
+                END valores;
+            OR
+                accept calcular(resultado: IN integer) is
+                    total = total + resultado;
+                END calcular;
+            END SELECT;
+        END for;
+        total = total / 1000000;
+    END Coordinador;
+
+    Task Body Worker is
+        inicio, fin, suma, i: integer;
+    Begin
+        Coordinador.valor(inicio, fin);
+        suma = 0;
+        for (i = inicio; i < fin; i++) is
+            suma = suma + vector[i];
+        END for;
+        Coordinador.calcular(suma);
+    END Worker;
+END CalcularVector;

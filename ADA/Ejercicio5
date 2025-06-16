@@ -1,0 +1,109 @@
+En una clínica existe un médico de guardia que recibe continuamente peticiones de
+atención de las E enfermeras que trabajan en su piso y de las P personas que llegan a la
+clínica ser atendidos
+
+
+Procedure Clinica is
+    Task medico is
+        Entry pedidos(solicitud: OUT peticion);
+        Entry atencion(solicitud: OUT peticion);
+        Entry notas(solicitud: OUT peticion);
+    END medico;
+
+    Task administrador is
+        Entry notas(nota: IN texto);
+        Entry siguiente(nota: OUT texto);
+    END administrador;
+
+    Task Type enfermera;
+
+    Task Type persona;
+
+    arrayEnfermera(1..E) of enfermera;
+    arrayPersona(1..P) of persona;
+
+    /*
+    Cuando una persona necesita que la atiendan espera a lo sumo 5 minutos a que el médico lo
+haga, si pasado ese tiempo no lo hace, espera 10 minutos y vuelve a requerir la atención del
+médico. Si no es atendida tres veces, se enoja y se retira de la clínica.
+    */
+    Task Body persona is
+        contador: integer;
+        noPaso: boolean;
+        pedido: texto;
+    Begin
+        generarPedido(pedido);
+        noPaso = false;
+        select
+            medico.atencion(pedido);
+        OR DELAY 300
+            noPaso = true;
+        end select;
+        contador = 0;
+        while (noPaso and contador < 2) is
+            select
+                medico.atencion(pedido);
+            OR DELAY 600
+                contador = contador + 1;
+            END select;
+        END while;
+    END persona;
+
+    /*
+    El médico atiende los pedidos dándole prioridad a los enfermos que llegan para ser atendidos.
+Cuando atiende un pedido, recibe la solicitud y la procesa durante un cierto tiempo. Cuando
+está libre aprovecha a procesar las notas dejadas por las enfermeras.
+    */
+    Task Body medico is
+        nota: texto;
+    Begin
+        loop
+            select
+                accept atencion(solicitud: OUT texto) do
+                    procesarSolicitud(solicitud);
+                END atencion;
+            OR
+                when (atencionCount = 0) => accept pedidos(solicitud: OUT texto) do
+                    procesarSolicitud(solicitud);
+                END pedidos
+            OR
+                when (atencionCount = 0 and pedidosCount = 0) => accept notas(solicitud: OUT texto) do
+                    procesarSolicitud(solicitud);
+                END notas;
+            END select;
+        END loop;
+    END medico;
+
+    Task Body administrador is
+    Begin
+        loop
+            accept siguiente(notasMedico: OUT texto) do
+                accept notas(notasEnfermera: IN texto) do
+                    notasMedico = notasEnfermera;
+                END notas;
+            END siguiente;
+        END loop;
+    END administrador;
+
+    Task Body enfermera is
+        nota: texto;
+    Begin
+        loop
+            generarNota(nota);
+            select
+                medico.pedidos(nota);
+            else
+                administrador.notas(nota);
+            end select;
+        END loop;
+    END enfermera;
+
+/*
+Cuando una enfermera requiere la atención del médico, si este no lo atiende inmediatamente
+le hace una nota y se la deja en el consultorio para que esta resuelva su pedido en el
+momento que pueda (el pedido puede ser que el médico le firme algún papel). Cuando la
+petición ha sido recibida por el médico o la nota ha sido dejada en el escritorio, continúa
+trabajando y haciendo más peticiones.
+*/
+Begin
+END Clinica;

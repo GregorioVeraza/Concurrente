@@ -1,0 +1,45 @@
+Resolver con PMA el siguiente problema. Se debe modelar el funcionamiento de una casa de venta de repuestos
+automotores, en la que trabajan V vendedores y que debe atender a C clientes. El modelado debe considerar que:
+(a) cada cliente realiza un pedido y luego espera a que se lo entreguen; y (b) los pedidos que hacen los clientes son
+tomados por cualquiera de los vendedores. Cuando no hay pedidos para atender, los vendedores aprovechan para
+controlar el stock de los repuestos (tardan entre 2 y 4 minutos para hacer esto). Nota: maximizar la concurrencia.
+
+chan siguiente(int);
+chan obtenerSiguiente[V](int, texto);
+chan obtenerPedido[C](texto);
+chan hacerPedido(texto, int)
+
+Process vendedores[id: 0..V-1]{
+    texto pedido;
+    texto repuestos;
+    int idCliente;
+    while (true){
+        send siguiente(id);
+        receive obtenerSiguiente[id](idCliente, pedido);
+        if (pedido == "vacio"){
+            delay(random(120,240));//modela cuanto tarda en hacer el stock del repuesto
+        } else {
+            repuestos = realizarPedido(pedido);
+            send obtenerPedido[idCliente](repuestos);
+        }
+    }
+}
+
+Process admin{
+    int idVendedor;
+    int idCliente;
+    texto pedido;
+    while (true){
+        receive siguiente(idVendedor);
+        if (empty(hacerPedido)) pedido = "vacio"
+        else receive hacerPedido(pedido, idCliente);
+        send obtenerSiguiente[idVendedor](idCliente, pedido);
+    }
+}
+Process clientes[id: 0..C-1]{
+    --enviar 
+    texto pedido = generarPedido();
+    texto entrega;
+    send hacerPedido(pedido, id);
+    receive obtenerPedido[id](entrega);
+}

@@ -1,0 +1,73 @@
+En un examen de la secundaria hay un preceptor y una profesora que deben tomar un examen
+escrito a 45 alumnos. El preceptor se encarga de darle el enunciado del examen a los alumnos
+cundo los 45 han llegado (es el mismo enunciado para todos). La profesora se encarga de ir
+corrigiendo los exámenes de acuerdo con el orden en que los alumnos van entregando. Cada
+alumno al llegar espera a que le den el enunciado, resuelve el examen, y al terminar lo deja
+para que la profesora lo corrija y le envíe la nota. Nota: maximizar la concurrencia; todos los
+procesos deben terminar su ejecución; suponga que la profesora tiene una función
+corregirExamen que recibe un examen y devuelve un entero con la nota. 
+
+Process Alumno[id:0..44]{
+    AdminPreceptor.llegue(id, enunciado);
+    examen = ResolverExamen(enunciado);
+    AdministrarProfesora.EntregarExamen(examen, nota);
+    AdministrarProfesora.ObtenerNota(nota);
+
+}
+
+Monitor AdministrarProfesora{
+    Cond espera, hayExamen;
+    int nota[45];
+    cola fila;
+
+
+    Procedure EntregarExamen(id: in int; examen: in texto; resultado: out int){
+        push(fila, (id, examen));
+        signal(hayExamen);
+        wait(espera);
+        resultado = nota[id];
+    }
+
+    Procedure sig(id: out int; examen: out texto){
+        if (empty(fila)) wait(hayExamen);
+        pop(fila, (id, examen));
+    }
+
+    Procedure Resultado(id: in int; res: out int){
+        nota[id] = res;
+        signal(espera);
+    }
+}
+
+Procedure Profesor{
+    int id, nota;
+    texto examen;
+    for i in 0..44{
+        AdministrarProfesora.sig(id, examen);
+        nota = corregirExamen(examen);
+        AdministrarProfesora(id, nota);
+    }
+}
+
+Monitor AdminPreceptor{
+    int llegaron = 0;
+    cond inicio, espera;
+    texto enunciado;
+
+    Procedure llegue(id: in int; salido: out texto){
+        llegaron++;
+        if (llegaron == 45) signal(inicio);
+        wait(espera);
+        salido = enunciado;
+    }
+
+    Procedure entregarEnunciado(examen: in texto){
+        if(llegaron < 45) wait(inicio);
+        enunciado = examen;
+        signal_all(espera);
+    }
+}
+Process Preceptor{
+    texto enunciado = generarExamen();
+    AdminPreceptor.entregarEnunciado(enunciado);
+}

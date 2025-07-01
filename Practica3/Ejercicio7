@@ -1,0 +1,54 @@
+Se debe simular una maratón con C corredores donde en la llegada hay UNA máquina
+expendedoras de agua con capacidad para 20 botellas. Además, existe un repositor encargado
+de reponer las botellas de la máquina. Cuando los C corredores han llegado al inicio comienza
+la carrera. Cuando un corredor termina la carrera se dirigen a la máquina expendedora, espera
+su turno (respetando el orden de llegada), saca una botella y se retira. Si encuentra la máquina
+sin botellas, le avisa al repositor para que cargue nuevamente la máquina con 20 botellas;
+espera a que se haga la recarga; saca una botella y se retira. Nota: mientras se reponen las
+botellas se debe permitir que otros corredores se encolen.
+
+Process Corredores[id:0..C-1]{
+    Barrera.llegue();
+    CorrerCarrera();
+    Botella b;
+    Maquina.termine(b);
+}
+
+Monitor Maquina{
+    int botellas = 20;
+    Cond cola, esperando, reponer;
+    boolean libre = true;
+
+    Procedure termine(b: out Botella){
+        if (not libre) wait(cola);
+            libre = false;
+            if (botellas == 0) {
+                signal(reponer);
+                wait(esperando);
+            }
+            b = sacarBotella();
+            botellas--;
+            libre = true;
+            signal(cola);
+    }
+
+    Procedure reponer(){
+        if (botellas > 0) wait(reponer);
+        botellas = 20;
+        signal(esperando);
+    }
+}
+
+Process Repositor{
+    while (true) Maquina.reponer();
+}
+Monitor Barrera{
+    int contador = 0;
+    Cond corredores;
+
+    Procedure llegue(){
+        contador++;
+        if (contador == C) signal_all(corredores);
+        else wait(corredores);
+    }
+}

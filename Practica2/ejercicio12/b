@@ -1,0 +1,58 @@
+.Simular la atención en una Terminal de Micros que posee 3 puestos para hisopar a 150
+pasajeros. En cada puesto hay una Enfermera que atiende a los pasajeros de acuerdo
+con el orden de llegada al mismo. Cuando llega un pasajero se dirige al puesto que tenga
+menos gente esperando. Espera a que la enfermera correspondiente lo llame para
+hisoparlo. Cuando terminaron de hisoparlo se retira.
+a. Implemente una solución considerando que además de los pasajeros y las enfermeras
+hay un Coordinador que es quien le indica al pasajero cual es el puesto que tiene
+menos gente esperando (el puesto al cual debe ir).
+b. Implemente una solución en las que sólo existan los pasajeros y las enfermeras,
+siendo los pasajeros quienes determinan qué puesto tiene menos personas esperando.
+Nota: suponga que existe una función Hisopar() que simula la atención del pasajero por
+parte de la enfermera correspondiente
+
+
+sem colaPasajeros = 1;
+sem hayPasajeros = 0;
+sem enviarCola[150] = 0;
+sem mutexColaEspera[3] = 1;
+sem hayPaciente[3] = 0;
+sem atendiendoPaciente[150] = 0;
+sem termineHisoparPaciente[150] = 0;
+sem mutexCantPersonas = 1;
+
+cola colaPasajero, obtenerIdPaciente[3];    
+
+Process Enfermera[id:0..2]{
+    --espera que haya un paciente
+    int idPaciente;
+    while (true) {
+        P(hayPaciente[id]);
+        P(mutexColaEspera[id]);
+        --llama al paciente
+        idPaciente = pop(obtenerIdPaciente[id]);
+        V(mutexColaEspera[id]);
+        V(atendiendoPaciente[idPaciente]);
+        --atiende al paciente
+        Hisopar();
+        V(termineHisoparPaciente[idPaciente]);
+    }
+}
+Process Pasajero[id:0..149]{
+    int numeroCola;
+    --avisar qie llego
+    P(colaPasajeros);
+    push(colaPasajero, id);
+    V(colaPasajeros);
+    P(mutexCantPersonas);
+    numeroCola = obtenerColaConMenorCantidadDePersonas();
+    V(mutexCantPersonas);
+    --espera que lo llamen
+    P(mutexColaEspera[numeroCola]);
+    push(obtenerIdPaciente[numeroCola], id);
+    V(mutexColaEspera[numeroCola]);
+    V(hayPaciente[numeroCola]);
+    --va al puesto que le indicaron para vacunarse
+    P(atendiendoPaciente[id]);
+    P(termineHisoparPaciente[id]);
+}
